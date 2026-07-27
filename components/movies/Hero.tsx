@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Heart, Star, Clock, Calendar, Check } from "lucide-react";
+import { Play, Heart, Star, Clock, Check } from "lucide-react";
 import { Movie } from "@/types/movie";
 import { getImagePath } from "@/lib/tmdb";
 import { TrailerModal } from "./TrailerModal";
@@ -34,7 +34,10 @@ export function Hero({ movies }: HeroProps) {
 
   const activeMovie = heroMovies[currentIndex];
   const activeBackdrop = getImagePath(activeMovie.backdrop_path, "backdrop");
-  const releaseYear = activeMovie.release_date ? activeMovie.release_date.split("-")[0] : "N/A";
+
+  const title = activeMovie.title || activeMovie.name || "Untitled";
+  const releaseDate = activeMovie.release_date || activeMovie.first_air_date || "";
+  const releaseYear = releaseDate ? releaseDate.split("-")[0] : "N/A";
 
   // Custom video key: default or retrieved from detail response.
   // Our mock movies have a video key inside videos.results.
@@ -94,7 +97,7 @@ export function Hero({ movies }: HeroProps) {
 
             {/* Title with outstanding display typography */}
             <h2 className="text-4xl sm:text-5xl md:text-7xl font-outfit font-extrabold tracking-tight text-text-primary leading-[1.05] drop-shadow-lg">
-              {activeMovie.title}
+              {title}
             </h2>
 
             {/* Overview description */}
@@ -183,7 +186,7 @@ export function Hero({ movies }: HeroProps) {
         isOpen={isTrailerOpen}
         onClose={() => setIsTrailerOpen(false)}
         videoKey={videoKey}
-        movieTitle={activeMovie.title}
+        movieTitle={title}
       />
     </section>
   );

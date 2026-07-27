@@ -9,24 +9,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#0A0A0F",
+        background: "var(--background)",
         surface: {
-          elevated: "#14141B",
-          glass: "rgba(20, 20, 27, 0.6)",
+          elevated: "var(--surface-elevated)",
+          glass: "var(--surface-glass)",
         },
         border: {
-          subtle: "rgba(255, 255, 255, 0.08)",
+          subtle: "var(--border-subtle)",
         },
         accent: {
-          gold: "#E4B343",
-          red: "#E11D48",
+          gold: "var(--accent-gold)",
+          red: "var(--accent-red)",
         },
         text: {
-          primary: "#FAFAFA",
-          secondary: "#A1A1AA",
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
         },
         rating: {
-          green: "#22C55E",
+          green: "var(--rating-green)",
         },
       },
       fontFamily: {

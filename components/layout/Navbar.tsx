@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Heart, Menu, X, Popcorn } from "lucide-react";
+import { Search, Heart, Menu, X, Popcorn, Sun, Moon, Volume2, VolumeX } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useSearchModal } from "@/hooks/useSearchModal";
+import { useSound } from "@/hooks/useSound";
+import { useAchievements } from "@/hooks/useAchievements";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -19,18 +21,58 @@ export function Navbar() {
   const pathname = usePathname();
   const { favoritesCount, loaded } = useFavorites();
   const { openSearch } = useSearchModal();
+  const { soundEnabled, toggleSound, playPop } = useSound();
+  const { unlockAchievement } = useAchievements();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
 
-  // Monitor scroll to transition transparent -> glass
+  // Load and apply theme and scroll triggers
   useEffect(() => {
+    try {
+      const storedTheme = localStorage.getItem("movie-hole-theme");
+      if (storedTheme === "light") {
+        setTheme("light");
+        document.documentElement.classList.add("light");
+      } else {
+        setTheme("dark");
+        document.documentElement.classList.remove("light");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleToggleTheme = () => {
+    playPop();
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem("movie-hole-theme", nextTheme);
+      if (nextTheme === "light") {
+        document.documentElement.classList.add("light");
+      } else {
+        document.documentElement.classList.remove("light");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleToggleSound = () => {
+    toggleSound();
+    // Award Sound Master achievement on toggle
+    setTimeout(() => {
+      unlockAchievement("sound-master");
+    }, 200);
+  };
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -61,6 +103,7 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  onClick={() => playPop()}
                   className={`relative font-sans text-sm font-semibold tracking-wide transition-colors py-2 px-1 ${
                     isActive ? "text-text-primary" : "text-text-secondary hover:text-text-primary"
                   }`}
@@ -79,20 +122,49 @@ export function Navbar() {
           </nav>
 
           {/* Right section actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+
+            {/* Theme Switcher Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleToggleTheme}
+              className="p-2.5 rounded-full bg-white/5 hover:bg-accent-gold/10 text-text-secondary hover:text-accent-gold transition-colors focus:outline-none"
+              aria-label="Toggle Theme Mode"
+              title="Toggle Theme Mode"
+            >
+              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </motion.button>
+
+            {/* Sound Toggle Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleToggleSound}
+              className="p-2.5 rounded-full bg-white/5 hover:bg-accent-red/10 text-text-secondary hover:text-accent-red transition-colors focus:outline-none"
+              aria-label="Toggle Synthesizer Sound"
+              title="Toggle Synthesizer Sound"
+            >
+              {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </motion.button>
+
             {/* Search Icon Trigger */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              onClick={openSearch}
+              onClick={() => {
+                playPop();
+                openSearch();
+              }}
               className="p-2.5 rounded-full bg-white/5 hover:bg-accent-gold/10 text-text-secondary hover:text-accent-gold transition-colors focus:outline-none focus:ring-2 focus:ring-accent-gold"
               aria-label="Open Search Modal"
+              title="Search (or Cmd/Ctrl+K)"
             >
               <Search className="w-5 h-5" />
             </motion.button>
 
             {/* My Hole / Favorites shortcut */}
-            <Link href="/favorites">
+            <Link href="/favorites" onClick={() => playPop()}>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -118,7 +190,10 @@ export function Navbar() {
             {/* Hamburger (Mobile Menu Toggle) */}
             <motion.button
               whileTap={{ scale: 0.95 }}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => {
+                playPop();
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
               className="md:hidden p-2.5 rounded-full bg-white/5 text-text-primary hover:bg-white/10"
               aria-label="Toggle Mobile Menu"
             >
@@ -172,6 +247,7 @@ export function Navbar() {
                   >
                     <Link
                       href={link.href}
+                      onClick={() => playPop()}
                       className={`block py-3 text-2xl font-outfit font-bold tracking-wider rounded-2xl border transition-all ${
                         isActive
                           ? "bg-gradient-to-r from-accent-gold to-accent-red text-text-primary border-transparent shadow-glow"

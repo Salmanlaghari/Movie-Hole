@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
-import { Star, Heart, Popcorn } from "lucide-react";
+import { Star, Heart } from "lucide-react";
 import { Movie } from "@/types/movie";
 import { getImagePath } from "@/lib/tmdb";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -27,7 +27,13 @@ export function MovieCard({ movie }: MovieCardProps) {
     mouseY.set(clientY - top);
   }
 
-  const releaseYear = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
+  // Handle both Movie (release_date, title) and TV show (first_air_date, name)
+  const isTV = !movie.title && !!movie.name;
+  const title = movie.title || movie.name || "Untitled";
+  const releaseDate = movie.release_date || movie.first_air_date || "";
+  const releaseYear = releaseDate ? releaseDate.split("-")[0] : "N/A";
+
+  const href = isTV ? `/tv/${movie.id}` : `/movie/${movie.id}`;
 
   return (
     <motion.div
@@ -37,7 +43,7 @@ export function MovieCard({ movie }: MovieCardProps) {
       onMouseMove={handleMouseMove}
       className="relative group w-[200px] md:w-[240px] flex-shrink-0 bg-surface-elevated rounded-2xl overflow-hidden border border-white/5 hover:border-accent-gold/20 shadow-xl transition-colors cursor-pointer select-none"
     >
-      <Link href={`/movie/${movie.id}`}>
+      <Link href={href}>
         <div className="relative aspect-[2/3] w-full overflow-hidden bg-white/5">
           {/* Spotlight overlay effect */}
           <motion.div
@@ -61,7 +67,7 @@ export function MovieCard({ movie }: MovieCardProps) {
           {/* Poster Image with sharp fade-in reveal */}
           <img
             src={getImagePath(movie.poster_path, "poster")}
-            alt={movie.title}
+            alt={title}
             className={`w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-108 ${
               isImageLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-102 blur-md"
             }`}
@@ -96,10 +102,10 @@ export function MovieCard({ movie }: MovieCardProps) {
           {/* Interactive dynamic hover overlay details */}
           <div className="absolute inset-x-0 bottom-0 p-4 z-20 flex flex-col justify-end">
             <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-accent-gold/90 mb-1">
-              {releaseYear}
+              {releaseYear} {isTV ? "• TV" : ""}
             </span>
             <h3 className="font-outfit font-extrabold text-sm md:text-base text-text-primary leading-tight truncate group-hover:text-accent-gold transition-colors">
-              {movie.title}
+              {title}
             </h3>
             {movie.genre_ids.length > 0 && (
               <p className="text-[10px] text-text-secondary mt-1.5 truncate">

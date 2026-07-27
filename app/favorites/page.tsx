@@ -1,28 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Trash2, Calendar, Star, Popcorn, ArrowUpDown, Film, RefreshCw } from "lucide-react";
+import { Heart, Trash2, Popcorn, ArrowUpDown, Award, Lock, RefreshCw } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useAchievements } from "@/hooks/useAchievements";
 import { MovieCard } from "@/components/movies/MovieCard";
 
 type SortOption = "recent" | "rating" | "title";
 
 export default function MyHolePage() {
   const { favorites, loaded, removeFavorite } = useFavorites();
+  const { achievements, unlockedCount, unlockAchievement } = useAchievements();
   const [sortBy, setSortBy] = useState<SortOption>("recent");
+
+  // Check and unlock achievements
+  useEffect(() => {
+    if (loaded && favorites.length >= 10) {
+      unlockAchievement("hole-digger");
+    } else if (loaded && favorites.length >= 1) {
+      unlockAchievement("first-pop");
+    }
+  }, [favorites.length, loaded, unlockAchievement]);
 
   // Sort logic based on selected option
   const sortedFavorites = [...favorites].sort((a, b) => {
     if (sortBy === "recent") {
-      return b.addedAt - a.addedAt;
+      return (b.addedAt || 0) - (a.addedAt || 0);
     }
     if (sortBy === "rating") {
       return b.vote_average - a.vote_average;
     }
     if (sortBy === "title") {
-      return a.title.localeCompare(b.title);
+      const titleA = a.title || a.name || "";
+      const titleB = b.title || b.name || "";
+      return titleA.localeCompare(titleB);
     }
     return 0;
   });
@@ -62,6 +75,49 @@ export default function MyHolePage() {
             </select>
           </div>
         )}
+      </div>
+
+      {/* Gamification: Achievements Bar */}
+      <div className="mb-12 p-6 rounded-2xl bg-surface-elevated/40 border border-white/5 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-outfit font-extrabold text-base md:text-lg text-text-primary flex items-center gap-2">
+            <Award className="w-5 h-5 text-accent-gold animate-bounce" />
+            <span>My Achievement Badges</span>
+          </h3>
+          <span className="text-xs font-mono font-bold text-accent-gold bg-accent-gold/10 px-3 py-1 rounded-full border border-accent-gold/20">
+            {unlockedCount} / {achievements.length} Unlocked
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {achievements.map((ach) => {
+            const isUnlocked = ach.unlockedAt !== null;
+            return (
+              <div
+                key={ach.id}
+                className={`p-3 rounded-xl border flex flex-col items-center text-center gap-2 transition-all relative group ${
+                  isUnlocked
+                    ? "bg-accent-gold/5 border-accent-gold/20 shadow-glow"
+                    : "bg-black/25 border-white/5 opacity-60"
+                }`}
+              >
+                <span className={`text-2xl filter drop-shadow-[0_0_8px_rgba(228,179,67,0.3)] ${!isUnlocked && "grayscale"}`}>
+                  {ach.icon}
+                </span>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold text-text-primary truncate">{ach.title}</span>
+                  <span className="text-[10px] text-text-secondary leading-snug line-clamp-1 mt-0.5">{ach.description}</span>
+                </div>
+
+                {!isUnlocked && (
+                  <div className="absolute top-2 right-2 text-text-secondary/40">
+                    <Lock className="w-3.5 h-3.5" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* 2. List States */}

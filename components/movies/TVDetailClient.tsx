@@ -1,21 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Heart, Calendar, Clock, ChevronLeft, Play, User, Share2, Copy } from "lucide-react";
+import { Star, Heart, Calendar, Clock, ChevronLeft, Play, User, Share2, Copy, Tv } from "lucide-react";
 import { Movie } from "@/types/movie";
 import { getImagePath } from "@/lib/tmdb";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useAchievements } from "@/hooks/useAchievements";
 import { TrailerModal } from "./TrailerModal";
 import { MovieRow } from "./MovieRow";
 import { toast } from "sonner";
 
-interface MovieDetailClientProps {
-  movie: Movie;
-  similarMovies: Movie[];
-  recommendedMovies: Movie[];
+interface TVDetailClientProps {
+  tvShow: Movie;
+  similarShows: Movie[];
+  recommendedShows: Movie[];
 }
 
 const STREAM_PROVIDERS = [
@@ -25,9 +26,10 @@ const STREAM_PROVIDERS = [
   { name: "Max", logo: "🟣", country: "US" },
 ];
 
-export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: MovieDetailClientProps) {
+export function TVDetailClient({ tvShow, similarShows, recommendedShows }: TVDetailClientProps) {
   const router = useRouter();
   const { isFavorite, toggleFavorite, loaded } = useFavorites();
+  const { unlockAchievement } = useAchievements();
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -35,14 +37,19 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
   const [country, setCountry] = useState("US");
   const [isShareOpen, setIsShareOpen] = useState(false);
 
-  const isFav = isFavorite(movie.id);
-  const videoKey = movie.videos?.results?.[0]?.key || "zSWdZVtXT7U";
+  const isFav = isFavorite(tvShow.id);
+  const videoKey = tvShow.videos?.results?.[0]?.key || "";
 
-  const title = movie.title || movie.name || "Untitled";
-  const releaseDate = movie.release_date || movie.first_air_date || "";
+  const title = tvShow.title || tvShow.name || "Untitled";
+  const releaseDate = tvShow.release_date || tvShow.first_air_date || "";
   const releaseYear = releaseDate ? releaseDate.split("-")[0] : "N/A";
 
-  const castList = movie.credits?.cast?.slice(0, 10) || [];
+  const castList = tvShow.credits?.cast?.slice(0, 10) || [];
+
+  // Unlock achievement on visit
+  useEffect(() => {
+    unlockAchievement("tv-enthusiast");
+  }, [unlockAchievement]);
 
   const handleCopyLink = () => {
     try {
@@ -58,20 +65,19 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
   return (
     <div className="min-h-screen bg-background pb-16">
 
-      {/* 1. Cinematic Backdrop Hero (60vh) */}
+      {/* 1. Backdrop banner image */}
       <div className="relative w-full h-[55vh] md:h-[65vh] overflow-hidden">
         <div className="absolute inset-0 bg-background">
           <img
-            src={getImagePath(movie.backdrop_path, "backdrop")}
+            src={getImagePath(tvShow.backdrop_path, "backdrop")}
             alt={title}
             className="w-full h-full object-cover opacity-45"
           />
-          {/* Multi-layered dark gradients for cinematic backdrop fade */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background/35" />
         </div>
 
-        {/* Floating Top Breadcrumb Bar */}
+        {/* Back navigation */}
         <div className="absolute top-6 left-0 right-0 z-20 max-w-7xl mx-auto px-4 md:px-8">
           <motion.button
             whileHover={{ scale: 1.05, x: -4 }}
@@ -80,25 +86,25 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
             className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/70 backdrop-blur-md border border-white/10 hover:border-accent-gold/40 text-text-secondary hover:text-accent-gold transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span className="text-xs font-mono font-bold uppercase tracking-wider">Back inside the Hole</span>
+            <span className="text-xs font-mono font-bold uppercase tracking-wider">Back to discovery</span>
           </motion.button>
         </div>
       </div>
 
-      {/* 2. Overlapping Details Container */}
+      {/* 2. Overlapping info content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-36 md:-mt-48 relative z-10 flex flex-col md:flex-row gap-8 md:gap-12">
 
-        {/* Floating Sticky Poster Card (left-side offset) */}
+        {/* Floating poster card */}
         <div className="w-56 md:w-80 flex-shrink-0 mx-auto md:mx-0">
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.1 }}
-            className="sticky top-28 bg-surface-elevated rounded-2xl overflow-hidden border border-white/15 hover:border-accent-gold/30 shadow-glowRed transition-all aspect-[2/3] w-full"
+            className="sticky top-28 bg-surface-elevated rounded-2xl overflow-hidden border border-white/15 hover:border-accent-gold/30 shadow-glowRed aspect-[2/3] w-full"
           >
             {!isImageLoaded && <div className="absolute inset-0 skeleton-shimmer" />}
             <img
-              src={getImagePath(movie.poster_path, "poster")}
+              src={getImagePath(tvShow.poster_path, "poster")}
               alt={title}
               className={`w-full h-full object-cover transition-all duration-500 ${
                 isImageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-102 blur-sm"
@@ -109,68 +115,41 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
           </motion.div>
         </div>
 
-        {/* Right side Detail Content */}
+        {/* Info panel */}
         <div className="flex-1 flex flex-col gap-6 text-center md:text-left">
 
-          {/* Title and Tagline */}
           <div className="flex flex-col gap-2">
-            <motion.h1
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-3xl sm:text-4xl md:text-5xl font-outfit font-extrabold tracking-tight text-text-primary"
-            >
+            <div className="flex items-center justify-center md:justify-start gap-2">
+              <span className="px-2.5 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+                <Tv className="w-3 h-3" />
+                TV SERIES
+              </span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-outfit font-extrabold tracking-tight text-text-primary">
               {title}
-            </motion.h1>
-
-            {movie.tagline && (
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-base md:text-lg italic text-accent-gold/80 font-medium"
-              >
-                &ldquo;{movie.tagline}&rdquo;
-              </motion.p>
+            </h1>
+            {tvShow.tagline && (
+              <p className="text-base md:text-lg italic text-accent-gold/80 font-medium">
+                &ldquo;{tvShow.tagline}&rdquo;
+              </p>
             )}
           </div>
 
-          {/* Quick Stats Grid Row */}
+          {/* Stats bar */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-            {/* Year */}
             <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono font-medium text-text-secondary">
               <Calendar className="w-3.5 h-3.5" />
-              <span>{releaseYear}</span>
+              <span>Started {releaseYear}</span>
             </div>
-
-            {/* Runtime */}
-            {movie.runtime && (
-              <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono font-medium text-text-secondary">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{movie.runtime} minutes</span>
-              </div>
-            )}
-
-            {/* Vote Rating average */}
+            <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono font-medium text-text-secondary">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{tvShow.runtime || 45} mins per ep</span>
+            </div>
             <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono font-bold text-text-primary">
               <Star className="w-3.5 h-3.5 fill-accent-gold text-accent-gold" />
-              <span className="text-rating-green">{movie.vote_average.toFixed(1)} Rating</span>
-              <span className="text-text-secondary/60">({movie.vote_count} votes)</span>
+              <span className="text-rating-green">{tvShow.vote_average.toFixed(1)} Rating</span>
             </div>
           </div>
-
-          {/* Genres row */}
-          {movie.genres && movie.genres.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-              {movie.genres.map((genre) => (
-                <Link key={genre.id} href="/genres">
-                  <span className="px-3.5 py-1.5 text-xs font-semibold tracking-wider rounded-full bg-accent-gold/10 hover:bg-accent-gold/20 text-accent-gold border border-accent-gold/20 transition-all cursor-pointer">
-                    {genre.name}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          )}
 
           {/* Stream Providers (Where to Stream) with Country Selector */}
           <div className="p-4 rounded-xl bg-surface-elevated border border-white/5 flex flex-col gap-3">
@@ -200,7 +179,6 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
 
           {/* Action CTAs Buttons */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 py-2 border-y border-white/5 my-1">
-            {/* Play Trailer Trigger Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -211,18 +189,13 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
               <span>Watch Trailer</span>
             </motion.button>
 
-            {/* Add to my Hole heart toggle button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => toggleFavorite(movie)}
+              onClick={() => toggleFavorite(tvShow)}
               className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-6 py-3.5 rounded-full backdrop-blur-xl transition-all font-bold"
             >
-              <Heart
-                className={`w-4 h-4 transition-all ${
-                  loaded && isFav ? "fill-accent-red text-accent-red scale-125" : "text-text-secondary"
-                }`}
-              />
+              <Heart className={`w-4 h-4 ${loaded && isFav ? "fill-accent-red text-accent-red" : ""}`} />
               <span>{loaded && isFav ? "In My Hole 🍿" : "Add to My Hole"}</span>
             </motion.button>
 
@@ -232,8 +205,8 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsShareOpen(!isShareOpen)}
-                className="p-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-text-secondary hover:text-text-primary cursor-pointer"
-                aria-label="Share movie"
+                className="p-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-text-secondary hover:text-text-primary"
+                aria-label="Share show"
               >
                 <Share2 className="w-5 h-5" />
               </motion.button>
@@ -263,6 +236,7 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
                       onClick={() => setIsShareOpen(false)}
                       className="p-2 hover:bg-white/5 rounded-lg flex items-center gap-1.5 text-xs text-text-primary w-full"
                     >
+                      {/* Twitter SVG logo */}
                       <svg className="w-3.5 h-3.5 fill-current text-sky-400" viewBox="0 0 24 24">
                         <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
                       </svg>
@@ -274,17 +248,17 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
             </div>
           </div>
 
-          {/* Overview Section */}
+          {/* Overview */}
           <div className="flex flex-col gap-2.5">
             <h3 className="font-outfit font-extrabold text-lg md:text-xl text-text-primary">
               Overview
             </h3>
             <p className="text-sm md:text-base text-text-secondary leading-relaxed max-w-3xl">
-              {movie.overview || "This cinematic release is waiting to reveal its full plot details inside our binging wormhole."}
+              {tvShow.overview}
             </p>
           </div>
 
-          {/* Cast Members Avatars Circular list */}
+          {/* Cast */}
           {castList.length > 0 && (
             <div className="flex flex-col gap-4 mt-2">
               <h3 className="font-outfit font-extrabold text-lg md:text-xl text-text-primary">
@@ -294,7 +268,6 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
                 {castList.map((actor) => (
                   <Link key={actor.id} href={`/person/${actor.id}`}>
                     <div className="group relative flex flex-col items-center cursor-pointer">
-                      {/* circular image avatar container */}
                       <motion.div
                         whileHover={{ scale: 1.1, rotate: 3 }}
                         className="w-14 h-14 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-accent-gold/60 shadow-md bg-white/5 relative"
@@ -312,8 +285,6 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
                           </div>
                         )}
                       </motion.div>
-
-                      {/* Tooltip Overlay */}
                       <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-surface-elevated border border-border-subtle rounded-xl py-1.5 px-3 min-w-[120px] text-center shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-30 scale-90 group-hover:scale-100">
                         <p className="text-xs font-bold text-text-primary whitespace-nowrap truncate">{actor.name}</p>
                         <p className="text-[10px] text-accent-gold font-mono truncate">{actor.character}</p>
@@ -328,26 +299,16 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
         </div>
       </div>
 
-      {/* 3. Recommended rows */}
+      {/* Recommended rows */}
       <div className="max-w-7xl mx-auto mt-16 md:mt-24 flex flex-col gap-4 relative z-10">
-
-        {similarMovies.length > 0 && (
-          <MovieRow
-            title="Wormholes Alike (Similar)"
-            movies={similarMovies}
-          />
+        {similarShows.length > 0 && (
+          <MovieRow title="Wormholes Alike (Similar TV Shows)" movies={similarShows} />
         )}
-
-        {recommendedMovies.length > 0 && (
-          <MovieRow
-            title="Popcorn Picks For You (Recommended)"
-            movies={recommendedMovies}
-          />
+        {recommendedShows.length > 0 && (
+          <MovieRow title="Popcorn Picks (Recommended TV Shows)" movies={recommendedShows} />
         )}
-
       </div>
 
-      {/* Iframe Youtube modal */}
       <TrailerModal
         isOpen={isTrailerOpen}
         onClose={() => setIsTrailerOpen(false)}

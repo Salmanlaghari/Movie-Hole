@@ -1,11 +1,15 @@
 export interface Movie {
   id: number;
-  title: string;
-  original_title: string;
+  title?: string;
+  name?: string; // For TV shows
+  original_title?: string;
+  original_name?: string; // For TV shows
   overview: string;
   poster_path: string | null;
   backdrop_path: string | null;
-  release_date: string;
+  release_date?: string;
+  first_air_date?: string; // For TV shows
+  media_type?: "movie" | "tv" | "person"; // From multi-search
   vote_average: number;
   vote_count: number;
   popularity: number;

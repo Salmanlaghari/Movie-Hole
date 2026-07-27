@@ -271,59 +271,67 @@ export function SearchModal() {
                     }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-4"
                   >
-                    {results.slice(0, 8).map((movie) => (
-                      <motion.div
-                        key={movie.id}
-                        variants={{
-                          hidden: { opacity: 0, y: 15 },
-                          visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } },
-                        }}
-                        whileHover={{ scale: 1.02, x: 5 }}
-                        className="p-3 rounded-2xl bg-surface-elevated/60 border border-white/5 hover:border-accent-gold/30 hover:bg-surface-elevated flex gap-4 transition-all"
-                        onClick={() => {
-                          handleAddRecentSearch(query);
-                          closeSearch();
-                        }}
-                      >
-                        <Link href={`/movie/${movie.id}`} className="flex gap-4 w-full">
-                          {/* Small Poster */}
-                          <div className="w-16 md:w-20 h-24 md:h-28 relative rounded-xl overflow-hidden bg-white/5 flex-shrink-0">
-                            <img
-                              src={getImagePath(movie.poster_path, "poster")}
-                              alt={movie.title}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
+                    {results.slice(0, 8).map((movie) => {
+                      const isTV = !movie.title && !!movie.name;
+                      const title = movie.title || movie.name || "Untitled";
+                      const releaseDate = movie.release_date || movie.first_air_date || "";
+                      const releaseYear = releaseDate ? releaseDate.split("-")[0] : "";
+                      const href = isTV ? `/tv/${movie.id}` : `/movie/${movie.id}`;
 
-                          {/* Detail summary */}
-                          <div className="flex-1 flex flex-col justify-center min-w-0">
-                            <h4 className="font-outfit font-bold text-base md:text-lg text-text-primary leading-snug truncate group-hover:text-accent-gold transition-colors">
-                              {movie.title}
-                            </h4>
-                            <p className="text-xs text-text-secondary line-clamp-2 mt-1 leading-relaxed">
-                              {movie.overview}
-                            </p>
-                            <div className="flex items-center gap-4 mt-2.5">
-                              {movie.vote_average > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Star className="w-3.5 h-3.5 fill-accent-gold text-accent-gold" />
-                                  <span className="text-xs font-mono font-bold text-text-primary">
-                                    {movie.vote_average.toFixed(1)}
-                                  </span>
-                                </div>
-                              )}
-                              {movie.release_date && (
-                                <div className="flex items-center gap-1 text-text-secondary text-xs">
-                                  <Calendar className="w-3.5 h-3.5" />
-                                  <span>{movie.release_date.split("-")[0]}</span>
-                                </div>
-                              )}
+                      return (
+                        <motion.div
+                          key={movie.id}
+                          variants={{
+                            hidden: { opacity: 0, y: 15 },
+                            visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } },
+                          }}
+                          whileHover={{ scale: 1.02, x: 5 }}
+                          className="p-3 rounded-2xl bg-surface-elevated/60 border border-white/5 hover:border-accent-gold/30 hover:bg-surface-elevated flex gap-4 transition-all cursor-pointer"
+                          onClick={() => {
+                            handleAddRecentSearch(query);
+                            closeSearch();
+                          }}
+                        >
+                          <Link href={href} className="flex gap-4 w-full">
+                            {/* Small Poster */}
+                            <div className="w-16 md:w-20 h-24 md:h-28 relative rounded-xl overflow-hidden bg-white/5 flex-shrink-0">
+                              <img
+                                src={getImagePath(movie.poster_path, "poster")}
+                                alt={title}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
                             </div>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    ))}
+
+                            {/* Detail summary */}
+                            <div className="flex-1 flex flex-col justify-center min-w-0">
+                              <h4 className="font-outfit font-bold text-base md:text-lg text-text-primary leading-snug truncate group-hover:text-accent-gold transition-colors">
+                                {title}
+                              </h4>
+                              <p className="text-xs text-text-secondary line-clamp-2 mt-1 leading-relaxed">
+                                {movie.overview}
+                              </p>
+                              <div className="flex items-center gap-4 mt-2.5">
+                                {movie.vote_average > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-3.5 h-3.5 fill-accent-gold text-accent-gold" />
+                                    <span className="text-xs font-mono font-bold text-text-primary">
+                                      {movie.vote_average.toFixed(1)}
+                                    </span>
+                                  </div>
+                                )}
+                                {releaseYear && (
+                                  <div className="flex items-center gap-1 text-text-secondary text-xs">
+                                    <Calendar className="w-3.5 h-3.5" />
+                                    <span>{releaseYear} {isTV ? "• TV" : ""}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </Link>
+                        </motion.div>
+                      );
+                    })}
                   </motion.div>
                 )}
               </AnimatePresence>
