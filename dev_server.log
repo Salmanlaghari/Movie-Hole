@@ -1,0 +1,21 @@
+
+> movie-hole-temp@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.3
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 1956ms
+ ○ Compiling / ...
+ ✓ Compiled / in 9.9s (1436 modules)
+ ✓ Compiled in 1184ms (708 modules)
+ GET / 200 in 11163ms
+ ○ Compiling /genres ...
+ ✓ Compiled /genres in 3.6s (1434 modules)
+ GET /genres 200 in 3961ms
+ ○ Compiling /favorites ...
+ ✓ Compiled /favorites in 683ms (1448 modules)
+ GET /favorites 200 in 815ms
+ GET / 200 in 187ms
+ GET / 200 in 105ms
