@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
-import { CategoryHeader } from "@/components/layout/CategoryHeader";
 import { Footer } from "@/components/layout/Footer";
 import { SearchModal } from "@/components/layout/SearchModal";
 import { SmoothScroll } from "@/components/effects/SmoothScroll";
@@ -35,11 +34,10 @@ export default function RootLayout({
         <CommandPalette />
         <Toaster position="bottom-right" theme="dark" />
         <Navbar />
-        <CategoryHeader />
         <SearchModal />
 
         {/* Main Content Area: push down under fixed transparent navbar */}
-        <main className="min-h-screen pt-12 md:pt-16">
+        <main className="min-h-screen pt-28">
           {children}
         </main>
 

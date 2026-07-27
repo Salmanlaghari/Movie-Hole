@@ -2,21 +2,28 @@
 > movie-hole-temp@0.1.0 dev
 > next dev
 
- ⚠ Port 3000 is in use, trying 3001 instead.
- ⚠ Port 3001 is in use, trying 3002 instead.
   ▲ Next.js 14.2.3
-  - Local:        http://localhost:3002
+  - Local:        http://localhost:3000
 
  ✓ Starting...
- ✓ Ready in 2.4s
- ○ Compiling /sports ...
- ✓ Compiled /sports in 9.3s (1470 modules)
- GET /sports 200 in 10463ms
- ✓ Compiled in 1112ms (724 modules)
- ○ Compiling /trending ...
- ✓ Compiled /trending in 762ms (1459 modules)
- GET /trending 200 in 1024ms
- GET /sports 200 in 123ms
- ○ Compiling /music ...
- ✓ Compiled /music in 832ms (1461 modules)
- GET /music 200 in 1126ms
+ ✓ Ready in 2.3s
+ ○ Compiling / ...
+ ✓ Compiled / in 8.1s (1480 modules)
+ ✓ Compiled in 800ms (729 modules)
+ GET / 200 in 8994ms
+ ○ Compiling /genres ...
+ ✓ Compiled /genres in 2.6s (1476 modules)
+ GET /genres 200 in 2865ms
+ ✓ Compiled /favorites in 416ms (1494 modules)
+ GET /favorites 200 in 516ms
+ ✓ Compiled /tv/[id] in 422ms (1509 modules)
+ GET /tv/1396 200 in 1061ms
+ ✓ Compiled /person/[id] in 439ms (1526 modules)
+ GET /person/17419 200 in 1328ms
+ ✓ Compiled in 1616ms (1518 modules)
+ ✓ Compiled in 578ms (1518 modules)
+ ✓ Compiled in 917ms (1518 modules)
+ ✓ Compiled in 523ms (1518 modules)
+ ✓ Compiled in 393ms (748 modules)
+ ✓ Compiled in 706ms (1518 modules)
+ ✓ Compiled in 1716ms (1504 modules)
