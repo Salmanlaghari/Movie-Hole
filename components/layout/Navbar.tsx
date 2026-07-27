@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Heart, Menu, X, Popcorn, Sun, Moon, Volume2, VolumeX } from "lucide-react";
+import { Search, Heart, Menu, X, Popcorn, Sun, Moon, Volume2, VolumeX, Settings } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useSearchModal } from "@/hooks/useSearchModal";
 import { useSound } from "@/hooks/useSound";
 import { useAchievements } from "@/hooks/useAchievements";
+import { useSettingsDrawer } from "@/hooks/useSettingsDrawer";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -23,6 +24,7 @@ export function Navbar() {
   const { openSearch } = useSearchModal();
   const { soundEnabled, toggleSound, playPop } = useSound();
   const { unlockAchievement } = useAchievements();
+  const { toggleDrawer } = useSettingsDrawer();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -30,24 +32,34 @@ export function Navbar() {
 
   // Load and apply theme and scroll triggers
   useEffect(() => {
-    try {
-      const storedTheme = localStorage.getItem("movie-hole-theme");
-      if (storedTheme === "light") {
-        setTheme("light");
-        document.documentElement.classList.add("light");
-      } else {
-        setTheme("dark");
-        document.documentElement.classList.remove("light");
+    const applyTheme = () => {
+      try {
+        const storedTheme = localStorage.getItem("movie-hole-theme");
+        if (storedTheme === "light") {
+          setTheme("light");
+          document.documentElement.classList.add("light");
+        } else {
+          setTheme("dark");
+          document.documentElement.classList.remove("light");
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    };
+
+    applyTheme();
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("movie-hole-theme-change", applyTheme);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("movie-hole-theme-change", applyTheme);
+    };
   }, []);
 
   const handleToggleTheme = () => {
@@ -61,6 +73,7 @@ export function Navbar() {
       } else {
         document.documentElement.classList.remove("light");
       }
+      window.dispatchEvent(new Event("movie-hole-theme-change"));
     } catch (e) {
       console.error(e);
     }
@@ -146,6 +159,21 @@ export function Navbar() {
               title="Toggle Synthesizer Sound"
             >
               {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </motion.button>
+
+            {/* Cinematic Settings & Soundscapes Gear Trigger */}
+            <motion.button
+              whileHover={{ scale: 1.1, rotate: 30 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                playPop();
+                toggleDrawer();
+              }}
+              className="p-2.5 rounded-full bg-white/5 hover:bg-accent-gold/10 text-text-secondary hover:text-accent-gold transition-colors focus:outline-none"
+              aria-label="Open Soundscapes Settings"
+              title="Cinematic Settings"
+            >
+              <Settings className="w-5 h-5" />
             </motion.button>
 
             {/* Search Icon Trigger */}

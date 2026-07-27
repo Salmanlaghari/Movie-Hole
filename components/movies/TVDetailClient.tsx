@@ -19,11 +19,22 @@ interface TVDetailClientProps {
   recommendedShows: Movie[];
 }
 
-const STREAM_PROVIDERS = [
-  { name: "Netflix", logo: "🔴", country: "US" },
-  { name: "Prime Video", logo: "🔵", country: "US" },
-  { name: "Disney+", logo: "⭐", country: "US" },
-  { name: "Max", logo: "🟣", country: "US" },
+interface Provider {
+  name: string;
+  logo: string;
+  countries: string[];
+}
+
+const STREAM_PROVIDERS: Provider[] = [
+  { name: "Netflix", logo: "🍿 Netflix", countries: ["US", "UK", "CA"] },
+  { name: "Prime Video", logo: "📦 Prime", countries: ["US", "UK", "CA"] },
+  { name: "Disney+", logo: "🏰 Disney+", countries: ["US", "UK", "CA"] },
+  { name: "Max (HBO)", logo: "📺 Max", countries: ["US"] },
+  { name: "Hulu", logo: "🟢 Hulu", countries: ["US"] },
+  { name: "BBC iPlayer", logo: "🇬🇧 iPlayer", countries: ["UK"] },
+  { name: "NOW TV", logo: "☁️ NOW", countries: ["UK"] },
+  { name: "Crave", logo: "🍁 Crave", countries: ["CA"] },
+  { name: "Paramount+", logo: "🏔️ Paramount", countries: ["US", "CA"] },
 ];
 
 export function TVDetailClient({ tvShow, similarShows, recommendedShows }: TVDetailClientProps) {
@@ -33,9 +44,25 @@ export function TVDetailClient({ tvShow, similarShows, recommendedShows }: TVDet
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-  // Watch providers selectors
+  // Watch providers selectors with location auto-detection
   const [country, setCountry] = useState("US");
   const [isShareOpen, setIsShareOpen] = useState(false);
+
+  // Auto-detect country based on browser locale/timezone on load
+  useEffect(() => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz.includes("Europe/London") || tz.includes("GB") || tz.includes("Europe/Belfast")) {
+        setCountry("UK");
+      } else if (tz.includes("Canada") || tz.includes("America/Toronto") || tz.includes("America/Vancouver")) {
+        setCountry("CA");
+      } else {
+        setCountry("US");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   const isFav = isFavorite(tvShow.id);
   const videoKey = tvShow.videos?.results?.[0]?.key || "";
@@ -151,31 +178,64 @@ export function TVDetailClient({ tvShow, similarShows, recommendedShows }: TVDet
             </div>
           </div>
 
-          {/* Stream Providers (Where to Stream) with Country Selector */}
-          <div className="p-4 rounded-xl bg-surface-elevated border border-white/5 flex flex-col gap-3">
+          {/* Stream Providers (Where to Stream) with Country Selector & Scroll Reveal */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="p-5 rounded-2xl bg-surface-elevated border border-white/5 flex flex-col gap-4 shadow-xl"
+          >
             <div className="flex items-center justify-between">
-              <h4 className="font-outfit font-bold text-sm text-accent-gold flex items-center gap-2">
-                <span>Where to stream</span>
-              </h4>
+              <div className="flex flex-col">
+                <h4 className="font-outfit font-bold text-sm text-text-primary flex items-center gap-2">
+                  <span>Where to watch</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accent-gold/20 text-accent-gold font-bold">
+                    Available in Region
+                  </span>
+                </h4>
+                <p className="text-[10px] text-text-secondary mt-0.5">
+                  Platform availability synced with selector
+                </p>
+              </div>
               <select
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                className="bg-white/5 border border-white/10 text-xs font-mono rounded px-2 py-1 text-text-secondary"
+                className="bg-white/5 border border-white/10 hover:border-accent-gold/40 text-xs font-mono rounded-lg px-2.5 py-1.5 text-text-secondary cursor-pointer outline-none focus:ring-1 focus:ring-accent-gold transition-colors"
+                aria-label="Filter streaming region"
               >
-                <option value="US" className="bg-surface-elevated">🇺🇸 USA</option>
-                <option value="UK" className="bg-surface-elevated">🇬🇧 UK</option>
-                <option value="CA" className="bg-surface-elevated">🇨🇦 Canada</option>
+                <option value="US" className="bg-surface-elevated text-text-primary">🇺🇸 US Region</option>
+                <option value="UK" className="bg-surface-elevated text-text-primary">🇬🇧 UK Region</option>
+                <option value="CA" className="bg-surface-elevated text-text-primary">🇨🇦 CA Region</option>
               </select>
             </div>
-            <div className="flex flex-wrap gap-4 items-center mt-1">
-              {STREAM_PROVIDERS.map((provider) => (
-                <div key={provider.name} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/25 text-xs text-text-primary">
-                  <span className="text-base">{provider.logo}</span>
-                  <span className="font-semibold">{provider.name}</span>
-                </div>
-              ))}
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-1">
+              {STREAM_PROVIDERS.map((provider) => {
+                const isAvailable = provider.countries.includes(country);
+                return (
+                  <motion.div
+                    key={provider.name}
+                    whileHover={isAvailable ? { scale: 1.03, y: -2 } : {}}
+                    className={`p-3 rounded-xl border flex flex-col justify-between gap-1 transition-all ${
+                      isAvailable
+                        ? "bg-gradient-to-br from-white/[0.04] to-white/[0.01] border-accent-gold/30 text-text-primary shadow-glow-sm"
+                        : "bg-black/10 border-white/5 text-text-secondary/40 opacity-30 grayscale cursor-not-allowed"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold tracking-tight">{provider.logo}</span>
+                      {isAvailable ? (
+                        <span className="text-[9px] font-mono font-bold uppercase text-accent-gold">Active</span>
+                      ) : (
+                        <span className="text-[9px] font-mono text-text-secondary/40">Locked</span>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
-          </div>
+          </motion.div>
 
           {/* Action CTAs Buttons */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 py-2 border-y border-white/5 my-1">
