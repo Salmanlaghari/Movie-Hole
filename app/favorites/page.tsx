@@ -7,6 +7,7 @@ import { Heart, Trash2, Popcorn, ArrowUpDown, Award, Lock, RefreshCw } from "luc
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAchievements } from "@/hooks/useAchievements";
 import { MovieCard } from "@/components/movies/MovieCard";
+import { AdBanner } from "@/components/layout/AdBanner";
 
 type SortOption = "recent" | "rating" | "title";
 
@@ -213,6 +214,9 @@ export default function MyHolePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Premium non-intrusive bottom banner */}
+      <AdBanner placement="my-hole-bottom" />
 
     </div>
   );

@@ -12,6 +12,7 @@ import { useAchievements } from "@/hooks/useAchievements";
 import { TrailerModal } from "./TrailerModal";
 import { MovieRow } from "./MovieRow";
 import { toast } from "sonner";
+import { AdBanner } from "@/components/layout/AdBanner";
 
 interface TVDetailClientProps {
   tvShow: Movie;
@@ -367,6 +368,11 @@ export function TVDetailClient({ tvShow, similarShows, recommendedShows }: TVDet
         {recommendedShows.length > 0 && (
           <MovieRow title="Popcorn Picks (Recommended TV Shows)" movies={recommendedShows} />
         )}
+      </div>
+
+      {/* Premium Non-intrusive Ad Banner */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <AdBanner placement="detail-bottom" />
       </div>
 
       <TrailerModal

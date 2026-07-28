@@ -9,6 +9,7 @@ import { useSearchModal } from "@/hooks/useSearchModal";
 import { useDebounce } from "@/hooks/useDebounce";
 import { tmdb, getImagePath } from "@/lib/tmdb";
 import { Movie } from "@/types/movie";
+import { AdCard } from "@/components/layout/AdCard";
 
 export function SearchModal() {
   const router = useRouter();
@@ -271,14 +272,14 @@ export function SearchModal() {
                     }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-4"
                   >
-                    {results.slice(0, 8).map((movie) => {
+                    {results.slice(0, 8).flatMap((movie, index) => {
                       const isTV = !movie.title && !!movie.name;
                       const title = movie.title || movie.name || "Untitled";
                       const releaseDate = movie.release_date || movie.first_air_date || "";
                       const releaseYear = releaseDate ? releaseDate.split("-")[0] : "";
                       const href = isTV ? `/tv/${movie.id}` : `/movie/${movie.id}`;
 
-                      return (
+                      const movieCard = (
                         <motion.div
                           key={movie.id}
                           variants={{
@@ -331,6 +332,15 @@ export function SearchModal() {
                           </Link>
                         </motion.div>
                       );
+
+                      if (index === 4) {
+                        return [
+                          <AdCard key="search-ad" variant="search-result" />,
+                          movieCard
+                        ];
+                      }
+
+                      return [movieCard];
                     })}
                   </motion.div>
                 )}

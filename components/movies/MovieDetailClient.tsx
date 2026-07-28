@@ -11,6 +11,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { TrailerModal } from "./TrailerModal";
 import { MovieRow } from "./MovieRow";
 import { toast } from "sonner";
+import { AdBanner } from "@/components/layout/AdBanner";
 
 interface MovieDetailClientProps {
   movie: Movie;
@@ -405,6 +406,11 @@ export function MovieDetailClient({ movie, similarMovies, recommendedMovies }: M
           />
         )}
 
+      </div>
+
+      {/* Premium Non-intrusive Ad Banner */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <AdBanner placement="detail-bottom" />
       </div>
 
       {/* Iframe Youtube modal */}

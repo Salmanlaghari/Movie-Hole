@@ -1,0 +1,63 @@
+name: Release Signed APK & AAB Packaging Workflow
+
+on:
+  push:
+    branches:
+      - main
+      - feat/movie-hole-premium
+  workflow_dispatch:
+
+jobs:
+  build-and-sign:
+    name: Build & Sign Production Mobile Packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install Project Dependencies
+        run: npm ci
+
+      - name: Setup Java Development Kit (JDK)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Decode & Inject Release Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_FILE }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "Warning: KEYSTORE_FILE secret is not set. Generating standard test fallback..."
+            keytool -genkey -v -keystore release.keystore -alias ai-browser -keyalg RSA -keysize 2048 -validity 10000 -storepass moviehole123 -keypass moviehole123 -dname "CN=Movie Hole, OU=Development, O=Movie Hole Corp, L=San Francisco, S=California, C=US"
+          else
+            echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+            echo "✓ Successfully decoded release keystore from secrets."
+          fi
+
+      - name: Compile Web Application & Execute Release Sign Pipeline
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'moviehole123' }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'ai-browser' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'moviehole123' }}
+        run: node scripts/build-android-release.js
+
+      - name: Upload Signed Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Movie-Hole-Release-Signed-APK
+          path: release-artifacts/movie-hole-release-signed.apk
+
+      - name: Upload Signed Release AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Movie-Hole-Release-Signed-AAB
+          path: release-artifacts/movie-hole-release-signed.aab

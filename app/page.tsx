@@ -1,6 +1,7 @@
 import { tmdb } from "@/lib/tmdb";
 import { Hero } from "@/components/movies/Hero";
 import { MovieRow } from "@/components/movies/MovieRow";
+import { AdCard } from "@/components/layout/AdCard";
 
 export const revalidate = 3600; // Cache page data for 1 hour
 
@@ -48,6 +49,8 @@ export default async function Home() {
           title="Popular Choices"
           movies={popular}
         />
+
+        <AdCard variant="row-native" />
 
         <MovieRow
           title="Coming Out of the Hole"

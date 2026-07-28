@@ -6,10 +6,12 @@ import { X, Volume2, VolumeX, Music, Play, Pause, Radio, Settings2, Sparkles, He
 import { useSettingsDrawer } from "@/hooks/useSettingsDrawer";
 import { useSoundscapes } from "@/hooks/useSoundscapes";
 import { useSound } from "@/hooks/useSound";
+import { useAds } from "@/hooks/useAds";
 
 export function SettingsDrawer() {
   const { isOpen, closeDrawer } = useSettingsDrawer();
   const { playPop } = useSound();
+  const { adsRemoved, setAdsRemovedState } = useAds();
   const {
     soundEnabled,
     ambientEnabled,
@@ -135,6 +137,37 @@ export function SettingsDrawer() {
                     <div
                       className={`w-5 h-5 rounded-full bg-background shadow-md transition-transform duration-300 ${
                         soundEnabled ? "translate-x-6" : "translate-x-0"
+                      }`}
+                    />
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* Premium Ads Toggle Module */}
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-outfit font-bold text-base text-text-primary flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-accent-gold" />
+                      Remove Ads (VIP Premium)
+                    </h3>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      Turn off all non-intrusive native sponsored cards and banners.
+                    </p>
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      playPop();
+                      setAdsRemovedState(!adsRemoved);
+                    }}
+                    className={`w-12 h-6 rounded-full p-0.5 transition-colors duration-300 outline-none ${
+                      adsRemoved ? "bg-accent-gold" : "bg-white/10"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full bg-background shadow-md transition-transform duration-300 ${
+                        adsRemoved ? "translate-x-6" : "translate-x-0"
                       }`}
                     />
                   </motion.button>

@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SearchModal } from "@/components/layout/SearchModal";
 import { SettingsDrawer } from "@/components/layout/SettingsDrawer";
+import { InterstitialAd } from "@/components/layout/InterstitialAd";
 import { SmoothScroll } from "@/components/effects/SmoothScroll";
 import { CustomCursor } from "@/components/effects/CustomCursor";
 import { SplashScreen } from "@/components/effects/SplashScreen";
@@ -39,6 +40,7 @@ export default function RootLayout({
         <Navbar />
         <SearchModal />
         <SettingsDrawer />
+        <InterstitialAd />
 
         {/* Main Content Area: push down under fixed transparent navbar */}
         <main className="min-h-screen pt-28">

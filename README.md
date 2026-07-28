@@ -101,3 +101,33 @@ npm start
 - Motion effects: [Framer Motion](https://framer.com/motion)
 - Database & metadata: [The Movie Database (TMDB)](https://www.themoviedb.org)
 - Design & execution: **Jules** (Software Engineer)
+
+---
+
+## 📱 Android Release Signing & CI/CD Workflow
+
+Movie Hole supports compilation and packaging into Android Hybrid Release packages (Release APK & AAB). This pipeline is fully automated and secured.
+
+### 🔑 Release Keystore Fingerprints
+
+The production keystore for `ai-browser` alias has been generated. Use the following documented fingerprints for Google Play Console, AdMob, and API service registrations:
+
+- **Keystore File**: `release.keystore`
+- **Alias Name**: `ai-browser`
+- **SHA-1 Fingerprint**: `8C:68:D5:58:15:E4:83:E6:15:0C:66:64:C1:FB:0D:EA:07:65:B8:ED`
+- **SHA-256 Fingerprint**: `BD:EB:24:ED:95:B3:5F:C3:8B:3B:A9:75:4F:45:A2:CE:BB:DD:1E:C2:B9:86:70:A4:59:28:83:DA:3D:3E:DE:56`
+- **MD5 Fingerprint**: `6B:A2:81:42:15:CC:F3:D5:08:92:B3:D9:E2:E3:64:FF`
+
+---
+
+### 🚀 CI/CD secrets configuration
+
+To run the automated mobile signing workflow inside GitHub Actions, ensure you add the following secrets to your GitHub Repository Settings (`Settings -> Secrets and variables -> Actions`):
+
+1. `KEYSTORE_FILE`: The base64-encoded string of your `release.keystore` file.
+   * *To generate this string, run: `base64 release.keystore | tr -d '\n'` and copy the output.*
+2. `KEYSTORE_PASSWORD`: The password of the generated keystore (default: `moviehole123`).
+3. `KEY_ALIAS`: The key alias used inside the keystore (default: `ai-browser`).
+4. `KEY_PASSWORD`: The key password (default: `moviehole123`).
+
+Once configured, any push to `main` or `feat/movie-hole-premium` automatically triggers the action to compile, sign, verify, and upload the resulting production packages!
