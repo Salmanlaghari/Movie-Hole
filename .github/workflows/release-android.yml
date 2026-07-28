@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feat/movie-hole-premium
+      - feat/movie-hole-premium-3283182103515465340
   workflow_dispatch:
 
 jobs:
@@ -35,12 +36,32 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_FILE }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "Warning: KEYSTORE_FILE secret is not set. Generating standard test fallback..."
-            keytool -genkey -v -keystore release.keystore -alias ai-browser -keyalg RSA -keysize 2048 -validity 10000 -storepass moviehole123 -keypass moviehole123 -dname "CN=Movie Hole, OU=Development, O=Movie Hole Corp, L=San Francisco, S=California, C=US"
-          else
-            echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+          KEYSTORE_FILE="release.keystore"
+          ALIAS_NAME="ai-browser"
+          STOREPASS="moviehole123"
+
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "-> KEYSTORE_BASE64 secret is provided. Decoding..."
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_FILE"
             echo "✓ Successfully decoded release keystore from secrets."
+          else
+            echo "-> KEYSTORE_BASE64 secret is empty. Checking local keystore file..."
+          fi
+
+          # Check if the keystore file exists
+          if [ -f "$KEYSTORE_FILE" ]; then
+            echo "✓ Keystore file '$KEYSTORE_FILE' exists."
+
+            # Check if the alias already exists using keytool -list
+            if keytool -list -keystore "$KEYSTORE_FILE" -storepass "$STOREPASS" -alias "$ALIAS_NAME" > /dev/null 2>&1; then
+              echo "✓ Alias '$ALIAS_NAME' already exists in '$KEYSTORE_FILE'. Reusing the existing alias."
+            else
+              echo "-> Alias '$ALIAS_NAME' does not exist in '$KEYSTORE_FILE'. Generating alias..."
+              keytool -genkeypair -v -keystore "$KEYSTORE_FILE" -alias "$ALIAS_NAME" -keyalg RSA -keysize 2048 -validity 10000 -storepass "$STOREPASS" -keypass "$STOREPASS" -dname "CN=Movie Hole, OU=Development, O=Movie Hole Corp, L=San Francisco, S=California, C=US"
+            fi
+          else
+            echo "-> Keystore file '$KEYSTORE_FILE' does not exist. Generating a new keystore and keypair..."
+            keytool -genkeypair -v -keystore "$KEYSTORE_FILE" -alias "$ALIAS_NAME" -keyalg RSA -keysize 2048 -validity 10000 -storepass "$STOREPASS" -keypass "$STOREPASS" -dname "CN=Movie Hole, OU=Development, O=Movie Hole Corp, L=San Francisco, S=California, C=US"
           fi
 
       - name: Compile Web Application & Execute Release Sign Pipeline
